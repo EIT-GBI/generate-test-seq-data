@@ -1,0 +1,9 @@
+.cache/
+__pycache__/
+*.pyc
+
+# Live on the scripts branch
+scripts/
+assets/
+build.sh
+structure.md

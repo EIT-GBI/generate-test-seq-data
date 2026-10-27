@@ -1,0 +1,2 @@
+sample,R1,R2,reference
+SAMPLE1,https://raw.githubusercontent.com/eit-gbi/nf-testdata/v1.0.0/data/illumina/ecoli/fastq/SAMPLE1_R1.fastq.gz,https://raw.githubusercontent.com/eit-gbi/nf-testdata/v1.0.0/data/illumina/ecoli/fastq/SAMPLE1_R2.fastq.gz,ecoli/genome.fasta

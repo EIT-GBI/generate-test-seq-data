@@ -1,0 +1,68 @@
+##fileformat=VCFv4.2
+##source=nf-testdata plant_variants.py (organism=human, seed=20260101)
+##INFO=<ID=KIND,Number=1,Type=String,Description="Planted variant class">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##contig=<ID=chr1,length=100000>
+##contig=<ID=chr2,length=100000>
+##contig=<ID=chr3,length=100000>
+##contig=<ID=chr4,length=100000>
+##contig=<ID=chr5,length=100000>
+##contig=<ID=chr6,length=100000>
+##contig=<ID=chr7,length=100000>
+##contig=<ID=chr8,length=100000>
+##contig=<ID=chr9,length=100000>
+##contig=<ID=chr10,length=100000>
+##contig=<ID=chr11,length=100000>
+##contig=<ID=chr12,length=100000>
+##contig=<ID=chr13,length=100000>
+##contig=<ID=chr14,length=100000>
+##contig=<ID=chr15,length=100000>
+##contig=<ID=chr16,length=100000>
+##contig=<ID=chr17,length=100000>
+##contig=<ID=chr18,length=100000>
+##contig=<ID=chr19,length=100000>
+##contig=<ID=chr20,length=100000>
+##contig=<ID=chr21,length=100000>
+##contig=<ID=chr22,length=100000>
+##contig=<ID=chrX,length=100000>
+##contig=<ID=chrY,length=100000>
+##contig=<ID=chrM,length=16569>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE1	SAMPLE2
+chr20	5726	.	T	C	.	PASS	KIND=snp	GT	0/1	0/0
+chr20	7346	.	A	G	.	PASS	KIND=snp	GT	0/0	0/1
+chr20	8984	.	A	T	.	PASS	KIND=snp	GT	1/1	1/1
+chr20	9502	.	C	G	.	PASS	KIND=snp	GT	0/1	1/1
+chr20	10328	.	A	T	.	PASS	KIND=snp	GT	0/1	0/0
+chr20	11124	.	G	A	.	PASS	KIND=snp	GT	0/0	0/1
+chr20	11335	.	A	AT	.	PASS	KIND=ins1	GT	1/1	1/1
+chr20	12144	.	T	G	.	PASS	KIND=snp	GT	0/1	1/1
+chr20	13114	.	G	T	.	PASS	KIND=snp	GT	0/1	0/0
+chr20	14135	.	A	G	.	PASS	KIND=snp	GT	0/0	0/1
+chr20	15217	.	C	CA	.	PASS	KIND=ins1	GT	1/1	1/1
+chr20	17267	.	CT	C	.	PASS	KIND=del1	GT	0/1	1/1
+chr20	23383	.	T	G	.	PASS	KIND=snp	GT	0/1	0/0
+chr21	8312	.	A	T	.	PASS	KIND=snp	GT	0/0	0/1
+chr21	8620	.	T	TAATGT	.	PASS	KIND=ins5	GT	1/1	1/1
+chr21	8766	.	A	C	.	PASS	KIND=snp	GT	0/1	1/1
+chr21	10322	.	A	G	.	PASS	KIND=snp	GT	0/1	0/0
+chr21	12486	.	A	G	.	PASS	KIND=snp	GT	0/0	0/1
+chr21	13124	.	T	A	.	PASS	KIND=snp	GT	1/1	1/1
+chr21	14431	.	A	C	.	PASS	KIND=snp	GT	0/1	1/1
+chr21	15246	.	T	TTCA	.	PASS	KIND=ins3	GT	0/1	0/0
+chr21	16221	.	T	A	.	PASS	KIND=snp	GT	0/0	0/1
+chr21	18117	.	T	A	.	PASS	KIND=snp	GT	1/1	1/1
+chr21	20367	.	A	C	.	PASS	KIND=snp	GT	0/1	1/1
+chr21	21231	.	C	T	.	PASS	KIND=snp	GT	0/1	0/0
+chr21	21606	.	GAAA	G	.	PASS	KIND=del3	GT	0/0	0/1
+chrM	5661	.	A	G	.	PASS	KIND=snp	GT	1/1	1/1
+chrM	6063	.	T	C	.	PASS	KIND=snp	GT	0/1	1/1
+chrM	6565	.	A	T	.	PASS	KIND=snp	GT	0/1	0/0
+chrM	7400	.	C	A	.	PASS	KIND=snp	GT	0/0	0/1
+chrM	7508	.	CTTT	C	.	PASS	KIND=del3	GT	1/1	1/1
+chrM	7817	.	C	A	.	PASS	KIND=snp	GT	0/1	1/1
+chrM	8221	.	A	G	.	PASS	KIND=snp	GT	0/1	0/0
+chrM	9056	.	C	G	.	PASS	KIND=snp	GT	0/0	0/1
+chrM	9688	.	A	G	.	PASS	KIND=snp	GT	1/1	1/1
+chrM	10239	.	A	T	.	PASS	KIND=snp	GT	0/1	1/1
+chrM	10621	.	C	CGAC	.	PASS	KIND=ins3	GT	0/1	0/0
+chrM	10832	.	A	T	.	PASS	KIND=snp	GT	0/0	0/1

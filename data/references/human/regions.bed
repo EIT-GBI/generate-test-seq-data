@@ -1,0 +1,4 @@
+chr20	0	30000	target
+chr21	0	30000	target
+chrM	0	16569	target
+chr11	0	100000	no_reads_expected
