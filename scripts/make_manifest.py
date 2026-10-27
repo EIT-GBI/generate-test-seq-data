@@ -8,6 +8,7 @@ on every job of every CI matrix. Keep it small.
 """
 
 import hashlib
+import subprocess
 import sys
 from pathlib import Path
 
@@ -16,6 +17,23 @@ import config
 TOTAL_BUDGET_MB = 100
 # The largest single file is the E. coli map-ont minimap2 index at 13.3 MB.
 FILE_BUDGET_MB = 15
+
+
+def generator_version() -> tuple[str, bool]:
+    """The scripts-branch commit this dataset was built from.
+
+    Data and generators live on different branches, so a published dataset
+    cannot point at its own source by commit. Record it here instead.
+    """
+    try:
+        sha = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True,
+                             text=True, check=True).stdout.strip()
+        dirty = bool(subprocess.run(["git", "status", "--porcelain"],
+                                    capture_output=True, text=True,
+                                    check=True).stdout.strip())
+        return sha, dirty
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return "unknown", True
 
 
 def sha256(path: Path) -> str:
@@ -43,11 +61,18 @@ def main() -> None:
         key = "/".join(Path(path).parts[:3])
         groups.setdefault(key, []).append(size)
 
+    sha, dirty = generator_version()
     lines = [
         "# Manifest",
         "",
         f"{len(rows)} files, {total / 1048576:.1f} MB total "
         f"(budget {TOTAL_BUDGET_MB} MB).",
+        "",
+        "| | |",
+        "| --- | --- |",
+        f"| generator commit | `{sha}`{' **+ uncommitted changes**' if dirty else ''} |",
+        f"| seed | `{config.SEED}` |",
+        f"| published base URL | `{config.BASE_URL}` |",
         "",
         "| area | files | MB |",
         "| --- | ---: | ---: |",
