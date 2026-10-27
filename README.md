@@ -4,8 +4,7 @@ Minimal, synthetic-but-real test data for the `nf-dnaseq`, `nf-dnaseq-ont` and
 `nf-dnaseq-long` pipelines and the `nf-mod-*` module repos.
 
 **You are on the `scripts` branch**, which holds the generators and this
-documentation. The data itself lives on `main`, as one parentless commit per
-release. `./publish.sh` moves one to the other.
+documentation. The data lives on `main`.
 
 Everything here is **regenerable from fixed seeds** (`./build.sh`) and, more
 importantly, **its truth is known**: the variants and methylation in these
@@ -312,149 +311,90 @@ generator commit and seed the dataset was built from.
 samplesheet starts with `BASE_URL` and resolves to a file that exists, and that
 no `data/` file has been accidentally tracked on the `scripts` branch.
 
-### Two branches, two histories
+### Two branches
 
 ```
-scripts   the generators and this README. Normal linear history, PRs, blame.
-main      the data and nothing else. One PARENTLESS commit per release.
+scripts   the generators and this README
+main      the data, and nothing else
 ```
 
-They are unrelated histories in one repo, which keeps a single URL and a single
-place to look while letting each half have the retention policy it needs. The
-data wants to be prunable; the code wants history. Putting both on one branch
-means every release either re-commits the code with no history, or compounds
-the data forever.
+Each branch ignores what the other tracks, so both stay clean:
 
-`data/` is therefore **gitignored on this branch**. It is built here and
-published to `main`; `./build.sh validate` fails if it is ever tracked here.
+| | `scripts/.gitignore` | `main/.gitignore` |
+| --- | --- | --- |
+| ignores | `data/`, `MANIFEST.md` | `scripts/`, `build.sh`, `structure.md` |
 
-### Releasing
+To publish a new dataset:
 
 ```sh
-# 1. Set the version the samplesheet URLs will carry
-$EDITOR scripts/config.py        # TAG = "v1.0.0", REPO = "eit-gbi/nf-testdata"
-./build.sh                       # regenerate; sheets pick up the new TAG
-git commit -am "Dataset v1.0.0"  # MANIFEST.md records this commit
+./build.sh                       # on scripts; writes data/ (ignored here)
+git switch main
+git add -A
+git commit -m "Dataset v1.0.1"
+git tag v1.0.1
+git push origin main v1.0.1
+```
 
-# 2. Publish: validates, then writes data/ to main as a fresh root commit
-./publish.sh v1.0.0
+Set the default branch to `main` on GitHub so people land on the data.
 
-# 3. Push both (publish.sh prints these)
+**Switching to `scripts` deletes `data/`**, because it is tracked on `main` and
+not here. That is normal git behaviour and it does not matter: `./build.sh`
+rebuilds it in 20 seconds, byte for byte identical. Treat `data/` as
+disposable. If the rebuild ever annoys you, check the branches out side by side
+instead:
+
+```sh
+git worktree add ../nf-testdata-main main
+```
+
+Before tagging, bump `TAG` in `scripts/config.py` and re-run
+`./build.sh sheets` — the tag is baked into every samplesheet URL, so the two
+have to agree.
+
+### Size and history
+
+Each dataset version that changes bytes costs close to full size in git
+history — gzipped FASTQ and BAM do not delta-compress. Measured here: the first
+commit of 96.6 MB produced an 80 MB `.git`; changing `SEED` and regenerating
+took it to 128 MB. So roughly **48 MB per version**, and about 19 versions
+before GitHub's 1 GB threshold.
+
+Two things keep that in hand. A no-op rebuild costs nothing, because the output
+is byte-for-byte deterministic and git stores no new objects. And the
+references do not churn — the 36 MB of fasta, bwa index and `.mmi` only change
+if the genome does.
+
+The thing that actually causes growth is development, not releases. Tuning
+coverage or read lengths means regenerating repeatedly, so only commit to
+`main` when you are tagging a version.
+
+**If `main` does get too big**, the simplest fix is to throw its history away
+and keep only the current data:
+
+```sh
+git switch main
+git checkout --orphan fresh
+git commit -m "Dataset v2.0.0 (earlier history dropped)"
+git branch -M fresh main
 git push --force origin main
-git push origin v1.0.0
-git push origin scripts
-
-# 4. Confirm it is actually served before wiring up CI
-curl -sI https://raw.githubusercontent.com/eit-gbi/nf-testdata/v1.0.0/data/references/ecoli/genome.fasta | head -1
 ```
 
-`publish.sh` refuses to run if the working tree is dirty, if the tag exists, if
-`config.TAG` disagrees with the tag you asked for, or if validation fails — all
-of which would otherwise produce a dataset whose samplesheets point at the
-wrong version.
-
-Set the default branch to `main` on GitHub so the data README is what people
-land on. `main` is force-pushed on every release, so anyone with a clone needs
-`git fetch && git reset --hard origin/main`; pipelines are unaffected because
-they pin tags.
-
-`TAG` and `REPO` live in `scripts/config.py` and are baked into every
-samplesheet URL, so publishing a new version is:
-
-1. edit `TAG` in `scripts/config.py`
-2. `./build.sh sheets manifest` (only the sheets carry URLs)
-3. commit, then `git tag -a vX.Y.Z && git push origin vX.Y.Z`
-4. bump `testdata_base_path` in the pipelines that should move to it
-
-Old tags keep working, so pipelines migrate one at a time rather than all at
-once.
-
-### History growth
-
-Binary blobs live in git history forever, and gzipped FASTQ/BAM data does not
-delta-compress, so each version that changes bytes costs close to full size.
-Measured on this dataset:
-
-| | `.git` |
-| --- | --- |
-| First commit (96.6 MB of files) | 80 MB |
-| After changing `SEED` and regenerating (84 files differ) | 128 MB |
-
-So **a full regeneration costs ~48 MB of permanent history** — roughly 19 of
-them before GitHub's 1 GB threshold. Two things keep that in hand:
-
-- **A no-op rebuild costs nothing.** Output is byte-for-byte deterministic, so
-  re-running `./build.sh` without changing anything produces identical files and
-  git stores nothing new. This is what that property is for.
-- **References do not churn.** The 36 MB of fasta, bwa index and `.mmi` did not
-  change when the seed did — only the 84 read/BAM/VCF files. The expensive but
-  stable half is paid once.
-
-It costs CI nothing either way: consumers fetch by URL and never clone.
-
-**The thing that actually causes growth is development, not releases.** Tuning
-coverage or read lengths means regenerating repeatedly. Treat this as a
-release-only repo: clone it, iterate with uncommitted changes, and commit once
-per tag.
-
-### Keeping only the last 5 versions
-
-**Pruning is not a storage trick — it is dropping support for old versions.**
-A tag is what keeps a version's blobs alive, and a tag is what pipelines pin
-to. So deleting it genuinely frees the space *and* genuinely breaks anything
-still pinned there. Check before you prune:
+Old tags still point at the old commits and keep their blobs alive, so delete
+the ones you no longer support — that is the real decision, since a tag is what
+pipelines pin to:
 
 ```sh
-grep -rn "nf-testdata/v" ../nf-dnaseq* ../nf-mod-*
-```
-
-Because `main` is replaced rather than extended, every release is already a
-standalone root commit and a tag is the only thing holding one alive. So
-pruning is just deleting tags — no rewriting, nothing else to clean up:
-
-```sh
-git fetch --prune origin
-
-# Everything except the newest five: newest-first, then skip 5
-for tag in $(git tag --sort=-creatordate | tail -n +6); do
+for tag in $(git tag --sort=-creatordate | tail -n +6); do   # keep newest 5
   git tag -d "$tag"
   git push origin --delete "$tag"
 done
-
-# Make the now-unreachable objects collectable locally
 git reflog expire --expire=now --all
 git gc --prune=now --aggressive
-git count-objects -vH
 ```
 
-Identical files are shared between tags, so versions that differ only in their
-samplesheets cost almost nothing: publishing v1.0.1 after v1.0.0 left `.git`
-unchanged at 71 MB.
-
-Truncating a **linear** history instead needs a rewrite, and has a trap:
-
-```sh
-KEEP=5
-BASE=$(git rev-parse "main~$((KEEP-1))")
-git checkout --orphan truncated "$BASE"
-git commit -m "Baseline (earlier history truncated)"
-git rebase --onto truncated "$BASE" main
-git branch -D truncated
-git push --force origin main
-```
-
-That leaves the working tree untouched and `main` five commits long — but the
-rebase gives every kept commit a **new SHA**, so *all* the old tags now point
-at orphaned commits and keep their blobs alive. Reclaiming anything requires
-deleting those tags as well. This is exactly why `publish.sh` makes each
-release parentless instead: there is never anything to rewrite.
-
-**GitHub reclaims lazily.** Deleting refs and force-pushing stops the objects
-being served and reachable, but the repository may not shrink on GitHub's side
-for some time; ask GitHub Support to run `git gc` if the number on the repo
-page matters. `git count-objects -vH` locally is the honest measure. Verified
-locally: 128 MB of history across two versions dropped to 70 MB — one version's
-worth — with all 148 files intact.
+Check what is pinned first: `grep -rn "nf-testdata/v" ../nf-dnaseq* ../nf-mod-*`.
+GitHub reclaims lazily, so the size shown on the repo page may lag;
+`git count-objects -vH` locally is the honest number.
 
 ## Deliberate omissions
 

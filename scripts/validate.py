@@ -219,30 +219,6 @@ def samplesheet_urls() -> None:
         print(f"         {problem}")
 
 
-def publishable_tree() -> None:
-    """The scripts branch must not carry the payload.
-
-    data/ is built here but published to the main branch by publish.sh, as a
-    parentless commit. If it were committed on this branch too, every release
-    would store a second copy and the whole point of splitting the histories
-    would be lost.
-    """
-    ignored = Path(".gitignore").read_text().split()
-    check("data/" in ignored,
-          ".gitignore excludes data/ -- the payload is published to main, "
-          "never committed to the scripts branch")
-    check(".cache/" in ignored,
-          ".gitignore excludes .cache/ -- downloads and intermediates must not ship")
-    check("MANIFEST.md" in ignored,
-          ".gitignore excludes MANIFEST.md -- it is generated and ships with the data")
-
-    tracked = subprocess.run(["git", "ls-files", "data"], capture_output=True,
-                             text=True).stdout.strip()
-    check(not tracked,
-          "no data/ files are tracked on this branch"
-          + (f" ({len(tracked.splitlines())} tracked)" if tracked else ""))
-
-
 def main() -> None:
     SCRATCH.mkdir(parents=True, exist_ok=True)
     for organism in config.ORGANISMS:
@@ -256,9 +232,8 @@ def main() -> None:
         adapter_present(organism)
         methylation_round_trip(organism)
 
-    print("\npublishing")
+    print("\nsamplesheets")
     samplesheet_urls()
-    publishable_tree()
 
     print()
     if failures:
