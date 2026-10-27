@@ -297,19 +297,20 @@ no upload step: `data/` appears in every URL purely because `data/` is a
 directory at the root of this repo.
 
 ```
-repo:  data/references/ecoli/genome.fasta
+main:  data/references/ecoli/genome.fasta
 URL:   https://raw.githubusercontent.com/eit-gbi/nf-testdata/v1.0.0/data/references/ecoli/genome.fasta
        └─────────── BASE_URL (scripts/config.py) ──────────────────┘└──── repo path ────┘
 ```
 
-So `data/` is **deliberately not in `.gitignore`** — it is the payload and has
-to be committed. `.gitignore` excludes only `.cache/` (downloads and haplotype
-intermediates) and `__pycache__/`. `MANIFEST.md` lists every repo-relative
-path, which makes it the index of what will be served.
+`data/` sits at the root **of the `main` branch**, which is what those URLs
+resolve against. On this branch it is gitignored, because it is built here and
+published there — see below. `MANIFEST.md` ships alongside it and lists every
+repo-relative path, which makes it the index of what is served, plus the
+generator commit and seed the dataset was built from.
 
 `./build.sh validate` checks this end of it too: that every URL in every
-samplesheet starts with `BASE_URL` and resolves to a file that actually exists
-here, and that `.gitignore` has not grown an entry that would drop `data/`.
+samplesheet starts with `BASE_URL` and resolves to a file that exists, and that
+no `data/` file has been accidentally tracked on the `scripts` branch.
 
 ### Two branches, two histories
 
