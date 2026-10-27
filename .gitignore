@@ -4,6 +4,5 @@ __pycache__/
 
 # Live on the scripts branch
 scripts/
-assets/
 build.sh
 structure.md
