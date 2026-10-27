@@ -3,6 +3,10 @@
 Minimal, synthetic-but-real test data for the `nf-dnaseq`, `nf-dnaseq-ont` and
 `nf-dnaseq-long` pipelines and the `nf-mod-*` module repos.
 
+**You are on the `scripts` branch**, which holds the generators and this
+documentation. The data itself lives on `main`, as one parentless commit per
+release. `./publish.sh` moves one to the other.
+
 Everything here is **regenerable from fixed seeds** (`./build.sh`) and, more
 importantly, **its truth is known**: the variants and methylation in these
 reads were planted deliberately and are written down. A test can assert that a
@@ -307,26 +311,51 @@ path, which makes it the index of what will be served.
 samplesheet starts with `BASE_URL` and resolves to a file that actually exists
 here, and that `.gitignore` has not grown an entry that would drop `data/`.
 
-First publish:
+### Two branches, two histories
+
+```
+scripts   the generators and this README. Normal linear history, PRs, blame.
+main      the data and nothing else. One PARENTLESS commit per release.
+```
+
+They are unrelated histories in one repo, which keeps a single URL and a single
+place to look while letting each half have the retention policy it needs. The
+data wants to be prunable; the code wants history. Putting both on one branch
+means every release either re-commits the code with no history, or compounds
+the data forever.
+
+`data/` is therefore **gitignored on this branch**. It is built here and
+published to `main`; `./build.sh validate` fails if it is ever tracked here.
+
+### Releasing
 
 ```sh
-# 1. The repo must be PUBLIC. A private repo needs a token on every fetch,
-#    which means a secret in all 7 nf-mod-* repos plus the 3 pipelines, and it
-#    breaks for forks. Nothing here needs protecting.
-gh repo create eit-gbi/nf-testdata --public
+# 1. Set the version the samplesheet URLs will carry
+$EDITOR scripts/config.py        # TAG = "v1.0.0", REPO = "eit-gbi/nf-testdata"
+./build.sh                       # regenerate; sheets pick up the new TAG
+git commit -am "Dataset v1.0.0"  # MANIFEST.md records this commit
 
-git init -b main
-git add -A && git commit -m "Generated test dataset"
-git remote add origin git@github.com:eit-gbi/nf-testdata.git
-git push -u origin main
+# 2. Publish: validates, then writes data/ to main as a fresh root commit
+./publish.sh v1.0.0
 
-# 2. Tag it. Pipelines pin the TAG, never the branch.
-git tag -a v1.0.0 -m "First dataset"
+# 3. Push both (publish.sh prints these)
+git push --force origin main
 git push origin v1.0.0
+git push origin scripts
 
-# 3. Check a file is actually served before wiring up any CI
+# 4. Confirm it is actually served before wiring up CI
 curl -sI https://raw.githubusercontent.com/eit-gbi/nf-testdata/v1.0.0/data/references/ecoli/genome.fasta | head -1
 ```
+
+`publish.sh` refuses to run if the working tree is dirty, if the tag exists, if
+`config.TAG` disagrees with the tag you asked for, or if validation fails — all
+of which would otherwise produce a dataset whose samplesheets point at the
+wrong version.
+
+Set the default branch to `main` on GitHub so the data README is what people
+land on. `main` is force-pushed on every release, so anyone with a clone needs
+`git fetch && git reset --hard origin/main`; pipelines are unaffected because
+they pin tags.
 
 `TAG` and `REPO` live in `scripts/config.py` and are baked into every
 samplesheet URL, so publishing a new version is:
@@ -367,20 +396,6 @@ coverage or read lengths means regenerating repeatedly. Treat this as a
 release-only repo: clone it, iterate with uncommitted changes, and commit once
 per tag.
 
-### Publish each version as an orphan branch
-
-Because each release is a full copy of the data, give it no parent:
-
-```sh
-git checkout --orphan data-v2
-git add -A && git commit -m "Dataset v2"
-git tag -a v2.0.0 -m "Dataset v2"
-git push origin data-v2 v2.0.0
-```
-
-Raw URLs work against any ref, so nothing downstream changes. The payoff is
-that versions stay independent, which is what makes the next section possible.
-
 ### Keeping only the last 5 versions
 
 **Pruning is not a storage trick — it is dropping support for old versions.**
@@ -392,19 +407,17 @@ still pinned there. Check before you prune:
 grep -rn "nf-testdata/v" ../nf-dnaseq* ../nf-mod-*
 ```
 
-With the orphan-branch layout above, each version is self-contained, so
-deleting its tag and branch is all it takes:
+Because `main` is replaced rather than extended, every release is already a
+standalone root commit and a tag is the only thing holding one alive. So
+pruning is just deleting tags — no rewriting, nothing else to clean up:
 
 ```sh
-# Everything except the newest five, newest-first then skip 5
 git fetch --prune origin
+
+# Everything except the newest five: newest-first, then skip 5
 for tag in $(git tag --sort=-creatordate | tail -n +6); do
   git tag -d "$tag"
   git push origin --delete "$tag"
-done
-for branch in $(git branch -r --format='%(refname:short)' --sort=-creatordate \
-                | grep '^origin/data-v' | tail -n +6); do
-  git push origin --delete "${branch#origin/}"
 done
 
 # Make the now-unreachable objects collectable locally
@@ -412,6 +425,10 @@ git reflog expire --expire=now --all
 git gc --prune=now --aggressive
 git count-objects -vH
 ```
+
+Identical files are shared between tags, so versions that differ only in their
+samplesheets cost almost nothing: publishing v1.0.1 after v1.0.0 left `.git`
+unchanged at 71 MB.
 
 Truncating a **linear** history instead needs a rewrite, and has a trap:
 
@@ -428,8 +445,8 @@ git push --force origin main
 That leaves the working tree untouched and `main` five commits long — but the
 rebase gives every kept commit a **new SHA**, so *all* the old tags now point
 at orphaned commits and keep their blobs alive. Reclaiming anything requires
-deleting those tags as well, which is the same support decision as above. This
-is the argument for orphan branches: there is nothing to rewrite.
+deleting those tags as well. This is exactly why `publish.sh` makes each
+release parentless instead: there is never anything to rewrite.
 
 **GitHub reclaims lazily.** Deleting refs and force-pushing stops the objects
 being served and reachable, but the repository may not shrink on GitHub's side
