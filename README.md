@@ -1,10 +1,10 @@
-# nf-testdata
+# generate-test-seq-data
 
 Minimal, synthetic-but-real test data for the `nf-dnaseq`, `nf-dnaseq-ont` and
 `nf-dnaseq-long` pipelines and the `nf-mod-*` module repos.
 
-**You are on the `scripts` branch**, which holds the generators and this
-documentation. The data lives on `main`.
+This repo has two branches: **`main`** holds the generated data, **`scripts`**
+holds the generators that build it. This README is on both.
 
 Everything here is **regenerable from fixed seeds** (`./build.sh`) and, more
 importantly, **its truth is known**: the variants and methylation in these
@@ -20,7 +20,7 @@ caller found a specific variant, rather than that an md5 did not change.
 
 ```groovy
 params {
-    testdata_base_path = 'https://raw.githubusercontent.com/eit-gbi/nf-testdata/v1.0.0'
+    testdata_base_path = 'https://raw.githubusercontent.com/eit-gbi/generate-test-seq-data/v1.0.0'
     reference_dir      = "${params.testdata_base_path}/data/references"
     samplesheet        = "${params.testdata_base_path}/data/samplesheets/illumina/two_samples.csv"
 }
@@ -297,7 +297,7 @@ directory at the root of this repo.
 
 ```
 main:  data/references/ecoli/genome.fasta
-URL:   https://raw.githubusercontent.com/eit-gbi/nf-testdata/v1.0.0/data/references/ecoli/genome.fasta
+URL:   https://raw.githubusercontent.com/eit-gbi/generate-test-seq-data/v1.0.0/data/references/ecoli/genome.fasta
        └─────────── BASE_URL (scripts/config.py) ──────────────────┘└──── repo path ────┘
 ```
 
@@ -337,14 +337,18 @@ git push origin main v1.0.1
 
 Set the default branch to `main` on GitHub so people land on the data.
 
-**Switching to `scripts` deletes `data/`**, because it is tracked on `main` and
-not here. That is normal git behaviour and it does not matter: `./build.sh`
-rebuilds it in 20 seconds, byte for byte identical. Treat `data/` as
-disposable. If the rebuild ever annoys you, check the branches out side by side
-instead:
+**Switching branches swaps the files, both ways.** Going to `main` removes
+`scripts/`; coming back to `scripts` removes `data/`. That is ordinary git
+behaviour — each branch tracks what the other does not — and the `.gitignore`s
+only stop them showing up as untracked noise, they do not preserve them.
+
+It costs nothing either way: `scripts/` comes straight back out of the branch,
+and `./build.sh` rebuilds `data/` in 20 seconds, byte for byte identical. Treat
+`data/` as disposable. If the switching annoys you, check the branches out side
+by side and stop switching:
 
 ```sh
-git worktree add ../nf-testdata-main main
+git worktree add ../test-seq-data-main main
 ```
 
 Before tagging, bump `TAG` in `scripts/config.py` and re-run
@@ -392,7 +396,7 @@ git reflog expire --expire=now --all
 git gc --prune=now --aggressive
 ```
 
-Check what is pinned first: `grep -rn "nf-testdata/v" ../nf-dnaseq* ../nf-mod-*`.
+Check what is pinned first: `grep -rn "generate-test-seq-data/v" ../nf-dnaseq* ../nf-mod-*`.
 GitHub reclaims lazily, so the size shown on the repo page may lag;
 `git count-objects -vH` locally is the honest number.
 

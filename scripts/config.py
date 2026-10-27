@@ -106,6 +106,6 @@ BARCODES = ["barcode01", "barcode02"]
 # these URLs baked in, so they work with no rewriting. Pin a TAG, never a
 # branch: a branch means regenerating the data silently changes what every
 # pipeline's CI downloads.
-REPO = "eit-gbi/nf-testdata"
+REPO = "eit-gbi/generate-test-seq-data"
 TAG = "v1.0.0"
 BASE_URL = f"https://raw.githubusercontent.com/{REPO}/{TAG}"
