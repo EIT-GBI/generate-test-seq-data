@@ -38,8 +38,9 @@ generator commit and seed this dataset was built from.
 | `data/pacbio/` | FASTQ, unaligned BAM, aligned BAM, pre-called VCF |
 | `data/samplesheets/` | 23 sheets, each exercising one thing |
 
-## History
+## Regenerating
 
-Each release is a **parentless commit** on `main`, tagged. Old versions are
-independent, so they can be pruned by deleting their tags without rewriting
-anything. See the `scripts` branch README for the retention recipe.
+This data is generated, not curated. The scripts that build it, and the full
+documentation of what is in it and what is true about it, are on the
+[`scripts` branch](../../tree/scripts). It rebuilds from fixed seeds in about
+20 seconds, byte for byte identical.
