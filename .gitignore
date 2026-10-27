@@ -1,0 +1,9 @@
+.cache/
+__pycache__/
+*.pyc
+
+# Generated payload. It is built here but published to the main branch,
+# never committed to this one. See publish.sh.
+data/
+MANIFEST.md
+.publish/
