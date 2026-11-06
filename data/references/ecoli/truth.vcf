@@ -1,5 +1,5 @@
 ##fileformat=VCFv4.2
-##source=nf-testdata plant_variants.py (organism=ecoli, seed=20260101)
+##source=generate-test-seq-data plant_variants.py (organism=ecoli, seed=20260101)
 ##INFO=<ID=KIND,Number=1,Type=String,Description="Planted variant class">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##contig=<ID=MDS42,length=3976195>
