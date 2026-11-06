@@ -1,9 +1,9 @@
 # Layout
 
-What `./build.sh` actually produces. 129 files, 92.5 MB.
+What `./build.sh` actually produces. 129 files, 96.5 MB.
 
 ```
-nf-testdata/
+generate-test-seq-data/
 ├── README.md                     what each file is and what is TRUE about it
 ├── MANIFEST.md                   every file, size and sha256 (the determinism tripwire)
 ├── build.sh                      seeded regeneration of everything

@@ -170,7 +170,7 @@ def shift_for(marks, pos):
 def write_vcf(path, organism, seqs, variants, genotypes, ploidy):
     lines = [
         "##fileformat=VCFv4.2",
-        f"##source=nf-testdata plant_variants.py (organism={organism}, seed={config.SEED})",
+        f"##source=generate-test-seq-data plant_variants.py (organism={organism}, seed={config.SEED})",
         '##INFO=<ID=KIND,Number=1,Type=String,Description="Planted variant class">',
         '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">',
     ]
