@@ -278,6 +278,14 @@ carry the running date, are stripped from the VCFs
 (`scripts/build_alignments.sh`). `MANIFEST.md` is the record; if it changes when
 nothing else did, one of those two has regressed.
 
+Reproducible **for a fixed toolchain**, though. Aligners and callers stamp their
+own version into what they write — `@PG` lines in BAM, `##bcftoolsVersion` in
+VCF — so upgrading one moves checksums while every alignment and variant record
+stays identical. That is exactly what happened on the rebuild that fixed the
+samplesheet URLs: minimap2 2.30 → 2.31 and bcftools 1.23 → 1.25 changed 28
+files and not one record in them. `MANIFEST.md` therefore records the toolchain
+it was built with; check that table before hunting for a real regression.
+
 ## Publishing
 
 The data is consumed over `raw.githubusercontent.com`, which is a plain file

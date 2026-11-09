@@ -4,9 +4,19 @@
 
 | | |
 | --- | --- |
-| generator commit | `ec07f8d52433a3fca1366e8e8cba36e6f8b868bb` |
+| generator commit | `1a92ce59cbd8c6c15081224894581cb4d596d032` |
 | seed | `20260101` |
 | published base URL | `https://raw.githubusercontent.com/eit-gbi/generate-test-seq-data/v1.0.0` |
+
+Built with:
+
+| tool | version |
+| --- | --- |
+| bwa | `0.7.19-r1273` |
+| samtools | `1.25` |
+| bcftools | `1.25` |
+| minimap2 | `2.31-r1302` |
+| python | `3.15.2` |
 
 | area | files | MB |
 | --- | ---: | ---: |
