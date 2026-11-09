@@ -8,11 +8,23 @@ on every job of every CI matrix. Keep it small.
 """
 
 import hashlib
+import platform
+import re
 import subprocess
 import sys
 from pathlib import Path
 
 import config
+
+# Tools whose version string lands inside the files they write: @PG lines in
+# BAM, ##bcftoolsVersion in VCF. Probed, not pinned -- this records what built
+# the dataset, it does not constrain it.
+TOOLS = [
+    ("bwa", ["bwa"], r"Version: (\S+)"),
+    ("samtools", ["samtools", "--version"], r"samtools (\S+)"),
+    ("bcftools", ["bcftools", "--version"], r"bcftools (\S+)"),
+    ("minimap2", ["minimap2", "--version"], r"(\S+)"),
+]
 
 TOTAL_BUDGET_MB = 100
 # The largest single file is the E. coli map-ont minimap2 index at 13.3 MB.
@@ -34,6 +46,27 @@ def generator_version() -> tuple[str, bool]:
         return sha, dirty
     except (subprocess.CalledProcessError, FileNotFoundError):
         return "unknown", True
+
+
+def toolchain() -> list[tuple[str, str]]:
+    """The aligners and callers that stamp themselves into their own output.
+
+    A toolchain upgrade changes the sha256 of files whose alignment and
+    variant records are byte-identical, because the version string travels in
+    the header. Recording it here makes a manifest mismatch readable as "the
+    tools moved" rather than "the data changed".
+    """
+    found = []
+    for name, cmd, pattern in TOOLS:
+        try:
+            run = subprocess.run(cmd, capture_output=True, text=True)
+        except FileNotFoundError:
+            found.append((name, "absent"))
+            continue
+        match = re.search(pattern, run.stdout + run.stderr)
+        found.append((name, match.group(1) if match else "unknown"))
+    found.append(("python", platform.python_version()))
+    return found
 
 
 def sha256(path: Path) -> str:
@@ -73,6 +106,12 @@ def main() -> None:
         f"| generator commit | `{sha}`{' **+ uncommitted changes**' if dirty else ''} |",
         f"| seed | `{config.SEED}` |",
         f"| published base URL | `{config.BASE_URL}` |",
+        "",
+        "Built with:",
+        "",
+        "| tool | version |",
+        "| --- | --- |",
+        *[f"| {name} | `{version}` |" for name, version in toolchain()],
         "",
         "| area | files | MB |",
         "| --- | ---: | ---: |",
